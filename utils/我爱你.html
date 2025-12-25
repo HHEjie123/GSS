@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>MERRY CHRISTMAS - For Kal-El</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Pinyon+Script&family=Noto+Serif+SC:wght@300;700&display=swap');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #050205;
+            font-family: 'Cinzel', serif;
+            user-select: none;
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 1;
+        }
+
+        /* 启动页 */
+        #start-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, #1a0510 0%, #000000 100%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 1s ease;
+        }
+        #start-screen.hidden { opacity: 0; pointer-events: none; }
+        
+        .start-btn {
+            margin-top: 40px;
+            padding: 12px 40px;
+            border: 1px solid #FF9EAA;
+            background: rgba(255, 158, 170, 0.1);
+            color: #FF9EAA;
+            font-family: 'Cinzel', serif;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.5s;
+            letter-spacing: 3px;
+            opacity: 0; 
+            animation: btnFadeIn 1s ease forwards;
+            position: relative;
+            overflow: hidden;
+            display: none; 
+        }
+        .start-btn::before {
+            content: '';
+            position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 158, 170, 0.4), transparent);
+            transition: 0.5s;
+        }
+        .start-btn:hover::before { left: 100%; }
+        .start-btn:hover {
+            box-shadow: 0 0 30px rgba(255, 158, 170, 0.3);
+            background: rgba(255, 158, 170, 0.2);
+        }
+        @keyframes btnFadeIn { to { opacity: 1; } }
+
+        /* UI 层 */
+        #ui-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+            opacity: 0; 
+            transition: opacity 1s ease 0.5s;
+        }
+        #ui-layer.visible { opacity: 1; }
+
+        .header-container {
+            text-align: center;
+            margin-top: 3vh; 
+            pointer-events: auto;
+            position: relative;
+            z-index: 20;
+        }
+
+        h1 {
+            font-family: 'Pinyon Script', cursive; 
+            font-size: clamp(3.5rem, 8vw, 6rem);
+            margin: 0;
+            background: linear-gradient(to bottom, #fff 20%, #FF9EAA 50%, #F88379 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 15px rgba(248, 131, 121, 0.5));
+            letter-spacing: 2px;
+            transform: scale(1, 1.1);
+        }
+
+        .subtitle {
+            font-family: 'Pinyon Script', cursive;
+            font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+            color: #FF9EAA;
+            text-align: center;
+            margin-top: 5px;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(255, 158, 170, 0.5);
+        }
+
+        .status-pill {
+            position: absolute;
+            top: 30px; right: 30px;
+            color: rgba(255, 158, 170, 0.8);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-bottom: 1px solid rgba(255, 158, 170, 0.3);
+            padding-bottom: 5px;
+        }
+
+        .guide-panel {
+            position: absolute;
+            left: 30px; bottom: 120px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+        .guide-panel:hover { opacity: 1; }
+        .guide-item { font-size: 0.8rem; color: #eee; }
+        .guide-item span { color: #F88379; margin-right: 10px; font-weight: bold; font-size: 1.1rem;}
+
+        .wish-container {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            pointer-events: auto;
+            width: 85%;
+            max-width: 450px;
+            z-index: 30;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            background: rgba(30, 0, 15, 0.6);
+            border: 1px solid rgba(255, 158, 170, 0.4);
+            border-radius: 30px;
+            padding: 12px 20px;
+            color: #fff;
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1rem;
+            outline: none;
+            text-align: center;
+            backdrop-filter: blur(5px);
+            transition: 0.3s;
+        }
+        input:focus {
+            background: rgba(50, 0, 25, 0.8);
+            border-color: #F88379;
+            box-shadow: 0 0 20px rgba(248, 131, 121, 0.3);
+        }
+        input::placeholder { color: rgba(255, 158, 170, 0.4); font-style: italic; }
+
+        button#wish-btn {
+            background: linear-gradient(135deg, #FF9EAA, #F88379);
+            border: none;
+            color: #fff;
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 0 25px;
+            border-radius: 30px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 0 15px rgba(255, 158, 170, 0.3);
+        }
+        button#wish-btn:hover { transform: scale(1.05); box-shadow: 0 0 25px rgba(248, 131, 121, 0.6); }
+
+        #music-control {
+            position: absolute;
+            top: 30px; left: 30px;
+            color: #FF9EAA;
+            cursor: pointer;
+            z-index: 50;
+            pointer-events: auto;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0.8;
+        }
+        #music-control:hover { opacity: 1; text-shadow: 0 0 10px #F88379; }
+        .music-text { font-size: 10px; letter-spacing: 2px; }
+
+        /* 弹窗 */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(3px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        
+        .wish-feedback-card {
+            background: radial-gradient(circle, rgba(40, 15, 25, 0.95), #000);
+            border: 2px solid #F88379;
+            padding: 40px 50px;
+            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0 0 60px rgba(248, 131, 121, 0.3), inset 0 0 20px rgba(248, 131, 121, 0.1);
+            transform: scale(0.8);
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            max-width: 80%;
+        }
+        .modal-overlay.active .wish-feedback-card { transform: scale(1); }
+        .wish-text-main {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.4rem;
+            color: #fff0f5;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        .wish-text-sub {
+            font-family: 'Pinyon Script', cursive;
+            font-size: 1.8rem;
+            color: #FF9EAA;
+            margin-top: 15px;
+        }
+
+        .letter-card {
+            background: rgba(25, 10, 15, 0.95);
+            border: 1px solid rgba(255, 158, 170, 0.5);
+            padding: 40px;
+            width: 75%;
+            max-width: 400px;
+            text-align: center;
+            border-radius: 4px;
+            box-shadow: 0 0 40px rgba(255, 158, 170, 0.2);
+            transform: translateY(30px);
+            transition: transform 0.6s ease;
+        }
+        .modal-overlay.active .letter-card { transform: translateY(0); }
+
+        .letter-text {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.3rem;
+            color: #fff;
+            line-height: 1.7;
+            margin-bottom: 25px;
+            text-shadow: 0 0 5px rgba(255, 158, 170, 0.3);
+        }
+        .letter-author {
+            font-family: 'Pinyon Script', cursive;
+            font-size: 1.5rem;
+            color: #FF9EAA;
+            text-align: right;
+        }
+        .hold-hint {
+            margin-top: 20px;
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.4);
+            font-style: italic;
+        }
+
+        #input_video {
+            position: absolute;
+            bottom: 20px; right: 20px;
+            width: 120px; height: 90px;
+            opacity: 0; 
+            transform: scaleX(-1);
+            pointer-events: none;
+            z-index: 5;
+            transition: opacity 0.5s;
+            border: 1px solid rgba(255, 158, 170, 0.2);
+        }
+        #input_video.active { opacity: 0.3; }
+
+        .loader-ring {
+            width: 60px; height: 60px;
+            border: 2px solid transparent;
+            border-top: 2px solid #FF9EAA;
+            border-right: 2px solid #F88379;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 100% {transform: rotate(360deg);} }
+
+    </style>
+    
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <div id="start-screen">
+        <h1 style="font-family: 'Pinyon Script', cursive; color: #FF9EAA; font-size: 4rem;">Merry Christmas</h1>
+        <div class="loader-ring" id="loader"></div>
+        <div id="loading-text" style="color: #888; margin-top: 20px; letter-spacing: 2px;">PREPARING MAGIC...</div>
+        <button id="start-btn" class="start-btn">ENTER MAGIC</button>
+    </div>
+
+    <audio id="bgm" loop preload="auto">
+        <source src="https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="ui-layer">
+        <div id="music-control">
+            <span>♪</span>
+            <span class="music-text">PLAYING</span>
+        </div>
+
+        <div class="header-container">
+            <h1>Merry Christmas</h1>
+            <div class="subtitle">专属的小天使, 金暮君慧</div>
+        </div>
+        
+        <div class="status-pill" id="status-text">State: Tree</div>
+
+        <div class="guide-panel">
+            <div class="guide-item"><span>✊</span> 圣诞树</div>
+            <div class="guide-item"><span>☝️</span> LOVE</div>
+            <div class="guide-item"><span>✌️</span> 爱心</div>
+            <div class="guide-item"><span>🖐</span> 星河</div>
+            <div class="guide-item"><span>👌</span> 抓取看信</div>
+        </div>
+
+        <div class="wish-container">
+            <input type="text" id="wish-input" placeholder="写下你的愿望...">
+            <button id="wish-btn">发送</button>
+        </div>
+    </div>
+
+    <div id="letter-modal" class="modal-overlay">
+        <div class="letter-card">
+            <div class="letter-text" id="letter-content"></div>
+            <div class="letter-author">by 小小的胖籽</div>
+            <div class="hold-hint">Release hand to close</div>
+        </div>
+    </div>
+
+    <div id="wish-modal" class="modal-overlay">
+        <div class="wish-feedback-card">
+            <div class="wish-text-main">您的愿望 <span id="wish-content-display" style="color:#FF9EAA; font-weight:bold;"></span></div>
+            <div class="wish-text-sub">已由小小的胖籽守护</div>
+        </div>
+    </div>
+
+    <div id="canvas-container"></div>
+    <video id="input_video" playsinline></video>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+        // 🎨 暖粉色主调 + 珊瑚粉 + 少量金色
+        const CONFIG = {
+            particleCount: 8000,
+            ribbonParticleCount: 1200,
+            treeHeight: 22,
+            treeRadius: 8,
+            colors: [
+                new THREE.Color('#F88379'), // Coral (珊瑚色 - 深)
+                new THREE.Color('#FF9EAA'), // Warm Pink (暖粉 - 主色)
+                new THREE.Color('#FFD700'), // Gold (金 - 点缀)
+                new THREE.Color('#FFB7C5')  // Cherry Pink (樱花粉 - 浅)
+            ]
+        };
+
+        const LETTERS = [
+            "小金你一笑，我的世界就亮了。", "遇见小金你，是我今生最温柔的意外。", "不是每天都想小金你，而是每时每刻都在想小金你。",
+            "小金你的名字，是我写过最短的情诗。", "和小金你在一起的每一秒，都值得珍藏。", "我不是在等风来，是在等小金你靠近。",
+            "小金你眼中有星辰，而我只想做那片夜空。", "爱小金你，是我做过最自然的事。", "想牵小金你的手，从心动走到白头。",
+            "世界很大，但有小金你在的地方心才是平静的。", "小金你不在时，连阳光都少了温度。", "我把心事折成纸飞机，全都飞向小金你。",
+            "小金你是我平凡日子里最甜的例外。", "喜欢小金你，像春天喜欢花开一样理所当然。", "小金你的声音，是我听过最安心的旋律。",
+            "即使沉默，和小金你待着也是浪漫。", "我愿做小金你疲惫时的港湾，快乐时的回响。", "小金你低头的样子，让我想守护一生。",
+            "爱不是轰轰烈烈，是小金你在就好。", "每一次心跳，都在说“我在乎小金你”。", "余生很长，只想和小金你慢慢走完。"
+        ];
+
+        const vertexShader = `
+            uniform float uTime;
+            uniform float uSize;
+            uniform float uMixHeart;    
+            uniform float uMixLove;     
+            uniform float uMixScatter; 
+
+            attribute vec3 positionTree;
+            attribute vec3 positionHeart;
+            attribute vec3 positionLove;
+            attribute vec3 positionScatter;
+            attribute vec3 color;
+            attribute float sizeRand;
+            
+            varying vec3 vColor;
+            varying float vAlpha;
+
+            void main() {
+                vColor = color;
+                
+                vec3 pos = mix(positionTree, positionHeart, uMixHeart);
+                pos = mix(pos, positionLove, uMixLove);
+                pos = mix(pos, positionScatter, uMixScatter);
+
+                float t = uTime * 0.5;
+                float amp = 0.08; 
+                
+                if(uMixScatter > 0.8) {
+                    amp = 0.5;
+                    pos.y += sin(t + pos.x * 0.3) * amp;
+                    pos.x += cos(t * 0.7 + pos.z * 0.3) * amp;
+                } else {
+                    pos.y += sin(t * 2.0 + pos.y) * 0.05; 
+                }
+
+                vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+                gl_Position = projectionMatrix * mvPosition;
+
+                float finalSize = uSize * (0.5 + sizeRand * 0.8);
+                gl_PointSize = finalSize * (40.0 / -mvPosition.z);
+
+                float twinkle = sin(uTime * 3.0 + sizeRand * 25.0) * 0.5 + 0.5;
+                vAlpha = 0.7 + 0.3 * twinkle;
+            }
+        `;
+
+        const fragmentShader = `
+            varying vec3 vColor;
+            varying float vAlpha;
+
+            void main() {
+                vec2 uv = gl_PointCoord - vec2(0.5);
+                float dist = length(uv);
+                if (dist > 0.5) discard;
+                
+                float glow = 1.0 - smoothstep(0.1, 0.5, dist);
+                // 暖色柔光，避免过曝发白
+                vec3 finalColor = mix(vColor, vec3(1.0, 0.9, 0.9), glow * 0.4);
+                
+                gl_FragColor = vec4(finalColor, vAlpha * glow);
+            }
+        `;
+
+        class ChristmasApp {
+            constructor() {
+                this.clock = new THREE.Clock();
+                this.state = 'tree'; 
+                this.targetUniforms = { heart: 0, love: 0, scatter: 0 };
+                this.currentUniforms = { heart: 0, love: 0, scatter: 0 };
+                
+                this.handPos = new THREE.Vector2(0.5, 0.5);
+                this.isHandDetected = false;
+                this.isReadingLetter = false;
+                this.fireworks = [];
+                this.stars = []; 
+
+                this.initThree();
+                this.initParticles();
+                this.initSnow();
+                this.init3DHeart();
+                this.initStars(); 
+                this.initPostProcessing();
+                this.initInteraction();
+                
+                this.animate();
+            }
+
+            initThree() {
+                this.container = document.getElementById('canvas-container');
+                this.scene = new THREE.Scene();
+                this.scene.fog = new THREE.FogExp2(0x050205, 0.015);
+
+                this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+                this.camera.position.set(0, 8, 32);
+                this.camera.lookAt(0, 8, 0);
+
+                this.renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, powerPreference: "high-performance" });
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                this.renderer.toneMapping = THREE.ReinhardToneMapping;
+                this.container.appendChild(this.renderer.domElement);
+                
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+                this.scene.add(ambientLight);
+                const dirLight = new THREE.DirectionalLight(0xFF7F50, 1.2);
+                dirLight.position.set(10, 20, 10);
+                this.scene.add(dirLight);
+            }
+
+            generateLovePoints(count) {
+                const canvas = document.createElement('canvas');
+                canvas.width = 512;
+                canvas.height = 256;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = 'black';
+                ctx.fillRect(0, 0, 512, 256);
+                ctx.font = 'bold 180px "Times New Roman", serif';
+                ctx.fillStyle = 'white';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText("LOVE", 256, 128);
+
+                const data = ctx.getImageData(0, 0, 512, 256).data;
+                const validPixels = [];
+
+                for(let y=0; y<256; y+=2) {
+                    for(let x=0; x<512; x+=2) {
+                        const i = (y * 512 + x) * 4;
+                        if(data[i] > 128) {
+                            validPixels.push({x, y});
+                        }
+                    }
+                }
+
+                const points = [];
+                for(let i=0; i<count; i++) {
+                    const p = validPixels[Math.floor(Math.random() * validPixels.length)];
+                    const px = (p.x - 256) * 0.1; 
+                    const py = -(p.y - 128) * 0.1 + 8;
+                    const pz = (Math.random() - 0.5) * 2;
+                    points.push(px, py, pz);
+                }
+                return points;
+            }
+
+            initParticles() {
+                const ribbonCount = CONFIG.ribbonParticleCount;
+                const baseCount = CONFIG.particleCount;
+                const totalCount = baseCount + ribbonCount;
+
+                const geometry = new THREE.BufferGeometry();
+                const posTree = [];
+                const posHeart = [];
+                const posScatter = [];
+                const posLove = this.generateLovePoints(totalCount);
+                
+                const colors = [];
+                const sizeRand = [];
+
+                // 1. 基础粒子 (实体树 - 体积分布)
+                for (let i = 0; i < baseCount; i++) {
+                    // Tree - Volume distribution fix
+                    // 使用立方根分布，解决顶部过密问题
+                    const h = CONFIG.treeHeight * (1 - Math.cbrt(1 - i / baseCount)); 
+                    
+                    const maxR = (1 - h / CONFIG.treeHeight) * CONFIG.treeRadius;
+                    const r = maxR * Math.sqrt(Math.random()); 
+                    const angle = Math.random() * Math.PI * 2;
+                    posTree.push(r * Math.cos(angle), h - CONFIG.treeHeight/2 + 2, r * Math.sin(angle));
+
+                    // Heart
+                    const t = Math.random() * Math.PI * 2;
+                    const heartScale = 0.5 * Math.sqrt(Math.random());
+                    const hx = 16 * Math.pow(Math.sin(t), 3) * heartScale;
+                    const hy = (13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t)) * heartScale + 10;
+                    const hz = (Math.random() - 0.5) * 6 * heartScale; 
+                    posHeart.push(hx, hy, hz);
+
+                    // Scatter
+                    const sr = 45;
+                    posScatter.push(
+                        (Math.random() - 0.5) * sr * 1.5,
+                        (Math.random() - 0.5) * sr + 12,
+                        (Math.random() - 0.5) * sr
+                    );
+
+                    // Colors - 增加粉色比例
+                    const rnd = Math.random();
+                    let c;
+                    if (rnd < 0.6) c = CONFIG.colors[1]; // Warm Pink (主力 60%)
+                    else if (rnd < 0.85) c = CONFIG.colors[0]; // Coral (深色层次 25%)
+                    else if (rnd < 0.95) c = CONFIG.colors[3]; // Cherry Pink (浅色 10%)
+                    else c = CONFIG.colors[2]; // Gold (点缀 5%)
+                    
+                    colors.push(c.r, c.g, c.b);
+                    sizeRand.push(Math.random());
+                }
+
+                // 2. 螺旋光带粒子
+                for (let i = 0; i < ribbonCount; i++) {
+                    const t = i / ribbonCount;
+                    const h = t * CONFIG.treeHeight;
+                    const angle = t * Math.PI * 2 * 5; 
+                    const maxR = (1 - t / CONFIG.treeHeight) * CONFIG.treeRadius; // 这里 t 需要归一化吗？ t is 0-1, so height is correct
+                    const rBase = (1 - h/CONFIG.treeHeight) * CONFIG.treeRadius;
+
+                    const rOffset = (Math.random() - 0.5) * 0.5;
+                    const hOffset = (Math.random() - 0.5) * 0.5;
+                    const r = rBase + 0.3; 
+                    const x = (r + rOffset) * Math.cos(angle);
+                    const z = (r + rOffset) * Math.sin(angle);
+                    const y = (h + hOffset) - CONFIG.treeHeight/2 + 2;
+
+                    posTree.push(x, y, z);
+
+                    // Heart
+                    const th = Math.random() * Math.PI * 2;
+                    const heartScale = 0.5; 
+                    const hx = 16 * Math.pow(Math.sin(th), 3) * heartScale;
+                    const hy = (13 * Math.cos(th) - 5 * Math.cos(2*th) - 2 * Math.cos(3*th) - Math.cos(4*th)) * heartScale + 10;
+                    const hz = (Math.random() - 0.5) * 2; 
+                    posHeart.push(hx, hy, hz);
+
+                    // Scatter
+                    const sr = 45;
+                    posScatter.push(
+                        (Math.random() - 0.5) * sr * 1.5,
+                        (Math.random() - 0.5) * sr + 12,
+                        (Math.random() - 0.5) * sr
+                    );
+
+                    // 光带颜色：高亮白金
+                    colors.push(1.0, 0.95, 0.8);
+                    sizeRand.push(Math.random() * 0.5 + 0.8); 
+                }
+
+                geometry.setAttribute('position', new THREE.Float32BufferAttribute(posTree, 3));
+                geometry.setAttribute('positionTree', new THREE.Float32BufferAttribute(posTree, 3));
+                geometry.setAttribute('positionHeart', new THREE.Float32BufferAttribute(posHeart, 3));
+                geometry.setAttribute('positionLove', new THREE.Float32BufferAttribute(posLove, 3));
+                geometry.setAttribute('positionScatter', new THREE.Float32BufferAttribute(posScatter, 3));
+                geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+                geometry.setAttribute('sizeRand', new THREE.Float32BufferAttribute(sizeRand, 1));
+
+                this.material = new THREE.ShaderMaterial({
+                    vertexShader: vertexShader,
+                    fragmentShader: fragmentShader,
+                    uniforms: {
+                        uTime: { value: 0 },
+                        uSize: { value: 8.0 * (window.innerHeight / 1080) },
+                        uMixHeart: { value: 0 },
+                        uMixLove: { value: 0 },
+                        uMixScatter: { value: 0 }
+                    },
+                    transparent: true,
+                    depthWrite: false,
+                    blending: THREE.AdditiveBlending
+                });
+
+                this.points = new THREE.Points(geometry, this.material);
+                this.points.frustumCulled = false; 
+                this.scene.add(this.points);
+            }
+
+            initSnow() {
+                const count = 300;
+                const pos = [];
+                for(let i=0; i<count; i++) {
+                    pos.push((Math.random()-0.5)*60, Math.random()*50, (Math.random()-0.5)*60);
+                }
+                const geo = new THREE.BufferGeometry();
+                geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+                const mat = new THREE.PointsMaterial({
+                    color: 0xffffff, size: 0.2, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending
+                });
+                this.snowSystem = new THREE.Points(geo, mat);
+                this.scene.add(this.snowSystem);
+            }
+
+            init3DHeart() {
+                const x = 0, y = 0;
+                const heartShape = new THREE.Shape();
+                heartShape.moveTo( x + 5, y + 5 );
+                heartShape.bezierCurveTo( x + 5, y + 5, x + 4, y, x, y );
+                heartShape.bezierCurveTo( x - 6, y, x - 6, y + 7,x - 6, y + 7 );
+                heartShape.bezierCurveTo( x - 6, y + 11, x - 3, y + 15.4, x + 5, y + 19 );
+                heartShape.bezierCurveTo( x + 12, y + 15.4, x + 16, y + 11, x + 16, y + 7 );
+                heartShape.bezierCurveTo( x + 16, y + 7, x + 16, y, x + 10, y );
+                heartShape.bezierCurveTo( x + 7, y, x + 5, y + 5, x + 5, y + 5 );
+
+                // 钻石切割感
+                const extrudeSettings = { depth: 3, bevelEnabled: true, bevelSegments: 1, steps: 1, bevelSize: 2, bevelThickness: 1 };
+                const geometry = new THREE.ExtrudeGeometry( heartShape, extrudeSettings );
+                geometry.center();
+
+                const material = new THREE.MeshPhysicalMaterial({
+                    color: 0xF88379,        // Coral
+                    emissive: 0xFF9EAA,     // Warm Pink Glow
+                    emissiveIntensity: 0.6,
+                    metalness: 0.9,         
+                    roughness: 0.0,         
+                    clearcoat: 1.0,         
+                    clearcoatRoughness: 0.0,
+                    flatShading: true,      
+                    side: THREE.DoubleSide
+                });
+
+                this.topHeart = new THREE.Mesh( geometry, material );
+                this.topHeart.scale.set(0.15, 0.15, 0.15);
+                this.topHeart.rotation.z = Math.PI; 
+                this.topHeart.position.set(0, CONFIG.treeHeight/2 + 3, 0);
+                this.scene.add( this.topHeart );
+
+                const heartLight = new THREE.PointLight(0xF88379, 2, 15);
+                this.topHeart.add(heartLight);
+            }
+
+            initStars() {
+                const starShape = new THREE.Shape();
+                const points = 5;
+                const outerRadius = 0.8;
+                const innerRadius = 0.4; 
+                
+                for (let i = 0; i < points; i++) {
+                    const angleOuter = (i / points) * Math.PI * 2 - Math.PI / 2;
+                    const angleInner = ((i + 0.5) / points) * Math.PI * 2 - Math.PI / 2;
+                    const xOut = Math.cos(angleOuter) * outerRadius;
+                    const yOut = Math.sin(angleOuter) * outerRadius;
+                    const xIn = Math.cos(angleInner) * innerRadius;
+                    const yIn = Math.sin(angleInner) * innerRadius;
+
+                    if (i === 0) starShape.moveTo(xOut, yOut);
+                    starShape.lineTo(xIn, yIn);
+                    starShape.lineTo(
+                        Math.cos(((i + 1) / points) * Math.PI * 2 - Math.PI / 2) * outerRadius,
+                        Math.sin(((i + 1) / points) * Math.PI * 2 - Math.PI / 2) * outerRadius
+                    );
+                }
+                starShape.closePath();
+
+                const geom = new THREE.ExtrudeGeometry(starShape, {
+                    depth: 0.3, bevelEnabled: true, bevelSegments: 5, steps: 1, bevelSize: 0.2, bevelThickness: 0.2 
+                });
+                geom.center();
+
+                const mat = new THREE.MeshStandardMaterial({
+                    color: 0xfff1be, emissive: 0xffd700, emissiveIntensity: 0.5,
+                    roughness: 0.3, metalness: 0.6
+                });
+
+                for (let i = 0; i < 6; i++) {
+                    const mesh = new THREE.Mesh(geom, mat.clone());
+                    const t = (i + 1) / 7; 
+                    const h = t * CONFIG.treeHeight; 
+                    const maxR = (1 - h / CONFIG.treeHeight) * CONFIG.treeRadius;
+                    const angle = i * (Math.PI * 2 / 1.618);
+                    const r = maxR + 0.5;
+                    
+                    const y = h - CONFIG.treeHeight/2 + 2;
+                    const x = Math.cos(angle) * r;
+                    const z = Math.sin(angle) * r;
+
+                    mesh.position.set(x, y, z);
+                    mesh.lookAt(0, y, 0); 
+                    mesh.rotateY(Math.PI); 
+                    
+                    mesh.userData = { 
+                        originalScale: new THREE.Vector3(1, 1, 1),
+                        rotSpeed: Math.random() * 0.01 + 0.005
+                    };
+
+                    this.scene.add(mesh);
+                    this.stars.push(mesh);
+
+                    const light = new THREE.PointLight(0xffeebb, 0.5, 5);
+                    light.position.set(0, 0, 0.5);
+                    mesh.add(light);
+                }
+            }
+
+            initPostProcessing() {
+                this.composer = new EffectComposer(this.renderer);
+                this.composer.addPass(new RenderPass(this.scene, this.camera));
+                
+                const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+                bloom.strength = 1.3; bloom.radius = 0.6; 
+                bloom.threshold = 0.2; // 调高阈值，防止泛白
+                this.composer.addPass(bloom);
+                this.bloomPass = bloom;
+            }
+
+            initInteraction() {
+                window.addEventListener('resize', () => {
+                    this.camera.aspect = window.innerWidth / window.innerHeight;
+                    this.camera.updateProjectionMatrix();
+                    this.renderer.setSize(window.innerWidth, window.innerHeight);
+                    this.composer.setSize(window.innerWidth, window.innerHeight);
+                });
+
+                const startScreen = document.getElementById('start-screen');
+                const startBtn = document.getElementById('start-btn');
+                const bgm = document.getElementById('bgm');
+                const uiLayer = document.getElementById('ui-layer');
+                const loader = document.getElementById('loader');
+                const loadingText = document.getElementById('loading-text');
+
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                    loadingText.style.display = 'none';
+                    startBtn.style.display = 'block';
+                }, 1000);
+
+                startBtn.addEventListener('click', () => {
+                    startBtn.style.display = 'none';
+                    loader.style.display = 'block';
+                    loadingText.style.display = 'block';
+                    loadingText.innerText = "SUMMONING MAGIC...";
+
+                    bgm.volume = 0.5; 
+                    bgm.play().then(() => {
+                        console.log("Audio playing");
+                    }).catch(e => {
+                        console.log("Audio autoplay prevented", e);
+                    });
+
+                    this.startMediaPipe(() => {
+                        startScreen.classList.add('hidden');
+                        uiLayer.classList.add('visible');
+                    });
+                });
+
+                const musicBtn = document.getElementById('music-control');
+                const musicText = musicBtn.querySelector('.music-text');
+                musicBtn.addEventListener('click', () => {
+                    if (bgm.paused) {
+                        bgm.play();
+                        musicBtn.style.color = '#FF9EAA';
+                        musicText.innerText = "PLAYING";
+                    } else {
+                        bgm.pause();
+                        musicBtn.style.color = '#666';
+                        musicText.innerText = "PAUSED";
+                    }
+                });
+
+                document.getElementById('wish-btn').addEventListener('click', () => {
+                    this.handleWish();
+                });
+                
+                document.getElementById('wish-modal').addEventListener('click', () => {
+                    document.getElementById('wish-modal').classList.remove('active');
+                });
+            }
+
+            handleWish() {
+                const inp = document.getElementById('wish-input');
+                const wishContent = inp.value.trim();
+                if(!wishContent) return;
+                
+                this.currentWishText = wishContent;
+                inp.value = "";
+                
+                this.state = 'tree';
+                this.targetUniforms = { heart: 0, love: 0, scatter: 0 };
+                this.spawnWishProjectile();
+            }
+
+            spawnWishProjectile() {
+                const geo = new THREE.SphereGeometry(0.3, 16, 16);
+                const mat = new THREE.MeshBasicMaterial({color: 0xFF9EAA});
+                const sys = new THREE.Mesh(geo, mat);
+                
+                const light = new THREE.PointLight(0xFF9EAA, 2, 8);
+                sys.add(light);
+
+                this.scene.add(sys);
+                
+                let progress = 0;
+                const duration = 120;
+
+                const animate = () => {
+                    progress++;
+                    const t = progress / duration;
+                    const h = -5 + t * (CONFIG.treeHeight + 10);
+                    const angle = t * Math.PI * 8;
+                    const r = 9 * (1-t);
+                    
+                    sys.position.set(Math.cos(angle)*r, h, Math.sin(angle)*r);
+
+                    if(progress < duration) requestAnimationFrame(animate);
+                    else {
+                        this.scene.remove(sys);
+                        this.triggerExplosion(this.topHeart.position);
+                        this.showWishModal();
+                    }
+                };
+                animate();
+            }
+
+            triggerExplosion(position) {
+                const oldStrength = this.bloomPass.strength;
+                this.bloomPass.strength = 5.0;
+                let f = 0;
+                const animBloom = () => {
+                    f++;
+                    this.bloomPass.strength = THREE.MathUtils.lerp(5.0, oldStrength, f/40);
+                    if(f<40) requestAnimationFrame(animBloom);
+                };
+                animBloom();
+
+                const count = 400;
+                const posArr = [];
+                const velArr = [];
+                
+                for(let i=0; i<count; i++) {
+                    posArr.push(position.x, position.y, position.z);
+                    const speed = Math.random() * 0.5 + 0.2;
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi = Math.random() * Math.PI;
+                    velArr.push(
+                        speed * Math.sin(phi) * Math.cos(theta),
+                        speed * Math.sin(phi) * Math.sin(theta),
+                        speed * Math.cos(phi)
+                    );
+                }
+
+                const geo = new THREE.BufferGeometry();
+                geo.setAttribute('position', new THREE.Float32BufferAttribute(posArr, 3));
+                const mat = new THREE.PointsMaterial({
+                    color: 0xffd700, size: 0.4, transparent: true, blending: THREE.AdditiveBlending
+                });
+                const system = new THREE.Points(geo, mat);
+                
+                this.scene.add(system);
+                this.fireworks.push({ system, velArr, age: 0 });
+            }
+
+            showWishModal() {
+                const display = document.getElementById('wish-content-display');
+                const modal = document.getElementById('wish-modal');
+                display.innerText = `“${this.currentWishText}”`;
+                modal.classList.add('active');
+                setTimeout(() => { modal.classList.remove('active'); }, 5000);
+            }
+
+            showLetter() {
+                if (this.isReadingLetter) return;
+                const letter = LETTERS[Math.floor(Math.random() * LETTERS.length)];
+                document.getElementById('letter-content').innerText = letter;
+                document.getElementById('letter-modal').classList.add('active');
+                this.isReadingLetter = true;
+            }
+
+            hideLetter() {
+                if (!this.isReadingLetter) return;
+                document.getElementById('letter-modal').classList.remove('active');
+                this.isReadingLetter = false;
+            }
+
+            startMediaPipe(onReady) {
+                const videoEl = document.getElementById('input_video');
+                const statusEl = document.getElementById('status-text');
+
+                const onResults = (results) => {
+                    if(onReady) {
+                        onReady();
+                        onReady = null; 
+                        videoEl.classList.add('active');
+                    }
+
+                    if(results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                        const lm = results.multiHandLandmarks[0];
+                        this.handPos.x = lm[9].x; this.handPos.y = lm[9].y;
+
+                        let count = 0;
+                        const tips = [8,12,16,20]; const pips = [6,10,14,18];
+                        for(let i=0; i<4; i++) if(lm[tips[i]].y < lm[pips[i]].y) count++;
+                        if(Math.abs(lm[4].x - lm[2].x) > 0.05) count++;
+
+                        const pinch = Math.hypot(lm[8].x - lm[4].x, lm[8].y - lm[4].y) < 0.05;
+
+                        if(this.state === 'scatter') {
+                            if (pinch) this.showLetter();
+                            else this.hideLetter();
+                        } else {
+                            this.hideLetter();
+                        }
+
+                        if(count >= 4) {
+                            this.state = 'scatter'; this.targetUniforms = {heart:0, love:0, scatter:1};
+                            statusEl.innerText = "GALAXY";
+                        } else if(count === 2) {
+                            this.state = 'heart'; this.targetUniforms = {heart:1, love:0, scatter:0};
+                            statusEl.innerText = "HEART";
+                        } else if(count === 1) { 
+                            this.state = 'love'; this.targetUniforms = {heart:0, love:1, scatter:0};
+                            statusEl.innerText = "LOVE";
+                        } else if(count === 0 && !pinch) {
+                            this.state = 'tree'; this.targetUniforms = {heart:0, love:0, scatter:0};
+                            statusEl.innerText = "TREE";
+                        }
+                    } else {
+                        this.hideLetter();
+                    }
+                };
+
+                const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+                hands.setOptions({ maxNumHands: 1, modelComplexity: 0 }); 
+                hands.onResults(onResults);
+                
+                const cam = new Camera(videoEl, { onFrame: async()=>{await hands.send({image:videoEl})}, width:320, height:240 });
+                cam.start().catch(e => {
+                    console.error("Camera failed", e);
+                    if(onReady) onReady();
+                });
+            }
+
+            animate() {
+                requestAnimationFrame(this.animate.bind(this));
+                const time = this.clock.getElapsedTime();
+
+                const speed = 0.05;
+                this.currentUniforms.heart += (this.targetUniforms.heart - this.currentUniforms.heart) * speed;
+                this.currentUniforms.love += (this.targetUniforms.love - this.currentUniforms.love) * speed;
+                this.currentUniforms.scatter += (this.targetUniforms.scatter - this.currentUniforms.scatter) * speed;
+
+                this.material.uniforms.uMixHeart.value = this.currentUniforms.heart;
+                this.material.uniforms.uMixLove.value = this.currentUniforms.love;
+                this.material.uniforms.uMixScatter.value = this.currentUniforms.scatter;
+                this.material.uniforms.uTime.value = time;
+
+                const snowPos = this.snowSystem.geometry.attributes.position.array;
+                for(let i=1; i<snowPos.length; i+=3){
+                    snowPos[i] -= 0.05;
+                    if(snowPos[i] < -20) snowPos[i] = 20;
+                }
+                this.snowSystem.geometry.attributes.position.needsUpdate = true;
+
+                this.topHeart.rotation.y += 0.02;
+                this.topHeart.position.y = CONFIG.treeHeight/2 + 3 + Math.sin(time*2)*0.2;
+
+                if (this.stars && this.stars.length > 0) {
+                    const isTreeState = this.state === 'tree' && this.currentUniforms.scatter < 0.1 && this.currentUniforms.heart < 0.1 && this.currentUniforms.love < 0.1;
+                    
+                    this.stars.forEach(star => {
+                        star.rotation.z += star.userData.rotSpeed;
+                        star.rotation.y += star.userData.rotSpeed;
+
+                        if (isTreeState) {
+                            star.scale.lerp(star.userData.originalScale, 0.05);
+                        } else {
+                            star.scale.lerp(new THREE.Vector3(0,0,0), 0.05);
+                        }
+                    });
+                }
+
+                for(let i = this.fireworks.length - 1; i >= 0; i--) {
+                    const fw = this.fireworks[i];
+                    fw.age++;
+                    const pos = fw.system.geometry.attributes.position.array;
+                    for(let j=0; j<fw.velArr.length/3; j++) {
+                        pos[j*3] += fw.velArr[j*3];
+                        pos[j*3+1] += fw.velArr[j*3+1];
+                        pos[j*3+2] += fw.velArr[j*3+2];
+                        fw.velArr[j*3+1] -= 0.01;
+                    }
+                    fw.system.geometry.attributes.position.needsUpdate = true;
+                    fw.system.material.opacity -= 0.015;
+                    if(fw.system.material.opacity <= 0) {
+                        this.scene.remove(fw.system);
+                        this.fireworks.splice(i, 1);
+                    }
+                }
+
+                if(this.state === 'scatter') {
+                    const tx = (this.handPos.x - 0.5) * 30;
+                    const ty = 8 + (this.handPos.y - 0.5) * 15;
+                    this.camera.position.x += (tx - this.camera.position.x) * 0.05;
+                    this.camera.position.y += (ty - this.camera.position.y) * 0.05;
+                } else {
+                    this.camera.position.x = Math.sin(time*0.2) * 32;
+                    this.camera.position.z = Math.cos(time*0.2) * 32;
+                    this.camera.position.y = 8 + Math.sin(time*0.5);
+                }
+                this.camera.lookAt(0, 8, 0);
+
+                this.composer.render();
+            }
+        }
+
+        window.onload = () => new ChristmasApp();
+
+    </script>
+</body>
+</html>
